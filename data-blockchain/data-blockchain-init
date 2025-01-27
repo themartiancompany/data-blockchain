@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+_bin="$( \
+  dirname \
+    "$( \
+      command \
+        -v \
+	  "env")")"
+_lib="${_bin}/../lib"
+source \
+  "${_lib}/libcrash-bash/crash-bash"
+
+_global_variables() {
+  start_date=""
+}
+
+_init() {
+  local \
+    _lib
+  _genesis="$( \
+    _get_lib)/data-blockchain/genesis.json"
+  geth \
+    init \
+    "${_genesis}"
+}
+
+
+_globals
+_global_variables
+_requirements
+
+app_opts=(
+)
+_init \
+  "${app_opts}"

@@ -1,0 +1,16 @@
+{
+  "config": {
+    "chainId": 31415926535897932384626433832795028841971693993751058209749445923078164062862,
+    "homesteadBlock": 0,
+    "eip150Block": 0,
+    "eip155Block": 0,
+    "eip158Block": 0,
+    "byzantiumBlock": 0,
+    "constantinopleBlock": 0,
+    "petersburgBlock": 0,
+    "ethash": {}
+  },
+  "difficulty": "1",
+  "gasLimit": "12000000",
+  "alloc": {}
+}

@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+_bin="$( \
+  dirname \
+    "$( \
+      command \
+        -v \
+	  "env")")"
+_lib="${_bin}/../lib"
+source \
+  "${_lib}/libcrash-bash/crash-bash"
+
+_global_variables() {
+  start_date=""
+}
+
+_requirements() {
+  _check_cmd \
+    "bootnode" \
+    "go-ethereum"
+  _check_cmd \
+    "geth" \
+    "go-ethereum"
+}
+
+_chain_id_get() {
+  local \
+    _genesis
+  _genesis="$( \
+    _get_lib)/data-blockchain/genesis.json"
+  cat \
+    "${_genesis}" | \
+
+}
+
+_boot_node() {
+  local \
+    _geth_opts=() \
+    _node_key_hex \
+    _node_key_path
+  _node_key_path="${HOME}/.ethereum/geth/nodekey"
+  _data_chain_id="$( \
+    _chain_id_get)"
+  # _node_key_hex="$( \
+  #   bootnode \
+  #     -nodekey \
+  #     "${_node_key_path}" \
+  #     -writeaddress)"
+  _geth_opts=(
+    # --nodekeyhex="${_node_key_hex}"
+    --nodiscover
+    --ipcdisable
+    --networkid=
+    # --netrestrict="172.16.254.0/28"
+
+  )
+  geth 
+}
+
+_globals
+_global_variables
+_requirements
+
+app_opts=(
+)
+_boot_node \
+  "${app_opts}"
