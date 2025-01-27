@@ -36,6 +36,14 @@ install-scripts:
 	  -vDm755 \
 	  "$(_PROJECT)/data-blockchain-bootnode" \
 	  "$(BIN_DIR)/data-blockchain-bootnode"
+	install \
+	  -vDm755 \
+	  "$(_PROJECT)/data-blockchain-rpc-endpoint" \
+	  "$(BIN_DIR)/data-blockchain-rpc-endpoint"
+	install \
+	  -vDm755 \
+	  "$(_PROJECT)/data-blockchain-miner" \
+	  "$(BIN_DIR)/data-blockchain-miner"
 
 install-doc:
 

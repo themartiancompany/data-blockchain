@@ -12,15 +12,30 @@ source \
 
 _global_variables() {
   start_date=""
+  conf_dir=""
+  color=""
+  quiet=""
+}
+
+_requirements() {
+  _check_cmd \
+    "geth" \
+    "go-ethereum"
 }
 
 _init() {
   local \
     _conf_dir="${1}" \
-    _lib
+    _lib \
+    _geth_opts=()
   _genesis="$( \
     _get_lib)/data-blockchain/genesis.json"
+  _geth_opts+=(
+    --datadir
+      "${conf_dir}"
+  )
   geth \
+    "${_geth_opts[@]}" \
     init \
     "${_genesis}"
 }

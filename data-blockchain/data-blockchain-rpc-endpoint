@@ -12,7 +12,7 @@ source \
 
 _global_variables() {
   start_date=""
-  cache_dir=""
+  conf_dir=""
   color=""
   quiet=""
 }
@@ -53,6 +53,7 @@ _http_api_opts_setup() {
 
 _rpc_endpoint() {
   local \
+    _conf_dir="${1}" \
     _geth_opts=() \
     _boot_node_address \
     _boot_node_port \
@@ -60,7 +61,7 @@ _rpc_endpoint() {
     _boot_node_key_path \
     _data_chain_id \
     _http_api_opts
-  _boot_node_key_path="${HOME}/.ethereum/geth/nodekey"
+  _boot_node_key_path="${_conf_dir}/geth/nodekey"
   _boot_node_address="127.0.0.1"
   _boot_node_port="30303"
   _data_chain_id="$( \
@@ -72,13 +73,20 @@ _rpc_endpoint() {
       -writeaddress)"
   _http_api_opts_setup
   _geth_opts=(
-     --bootnodes="enode://${_boot_node_key_hex}@${_boot_node_address}:${_boot_node_port}"
-     --allow-insecure-unlock
-     --http
-     --http.addr="0.0.0.0"
-     --http.api="${_http_api_opts}"
-     --http.corsdomain="*"
-     --networkid="${_data_chain_id}"
+    --datadir
+      "${_conf_dir}"
+    --bootnodes
+      "enode://${_boot_node_key_hex}@${_boot_node_address}:${_boot_node_port}"
+    --allow-insecure-unlock
+    --http
+    --http.addr
+      "0.0.0.0"
+    --http.api
+      "${_http_api_opts}"
+    --http.corsdomain
+      "*"
+    --networkid
+      "${_data_chain_id}"
   )
   geth \
     "${_geth_opts[@]}"
@@ -121,6 +129,40 @@ _set_overrides() {
   _conf_dir_auto_detect
 }
 
+# Show help usage, with an exit status.
+# $1: exit status number.
+_usage() {
+  local \
+    _usage_text
+  IFS='' \
+    read \
+      -r \
+      -d '' \
+      _usage_text << \
+        ENDUSAGETEXT || true
+
+Data blockchain RPC endpoint
+
+Usage:
+  ${app_name}
+    [options]
+
+  options:
+     -C <conf_dir>          Configuration directory.
+                            Default: ${conf_dir}
+
+     -h                     This message.
+     -c                     Enable color output
+     -v                     Enable verbose output
+ENDUSAGETEXT
+  _printf \
+    '%s\n' \
+    "${_usage_text}"
+  exit \
+    "${1}"
+}
+
+
 _show_config() {
   _msg_info "${app_name} configuration"
   _msg_info "               Start date:   ${start_date}"
@@ -160,6 +202,7 @@ shift \
 _set_overrides
 _show_config
 app_opts=(
+  "${conf_dir}"
 )
 
 _rpc_endpoint \
