@@ -12,23 +12,82 @@ source \
 
 _global_variables() {
   start_date=""
+  cache_dir=""
+  color=""
+  quiet=""
 }
 
-_init() {
+_requirements() {
+  _check_cmd \
+    "bootnode" \
+    "go-ethereum"
+  _check_cmd \
+    "geth" \
+    "go-ethereum"
+  _check_cmd \
+    "jq"
+}
+
+_chain_id_get() {
   local \
-    _conf_dir="${1}" \
-    _lib
+    _chain_id \
+    _genesis
   _genesis="$( \
     _get_lib)/data-blockchain/genesis.json"
+  _chain_id="$( \
+    cat \
+      "${_genesis}" | \
+      jq \
+        '.[].chainId' 2>/dev/null)" || \
+    true
+  echo \
+    "${_chain_id}"
+}
+
+_http_api_opts_setup() {
+  local \
+    _local_opts
+  _local_opts="eth,web3,net,admin,personal"
+  _http_api_opts="eth,web3,net"
+}
+
+_rpc_endpoint() {
+  local \
+    _geth_opts=() \
+    _boot_node_address \
+    _boot_node_port \
+    _boot_node_key_hex \
+    _boot_node_key_path \
+    _data_chain_id \
+    _http_api_opts
+  _boot_node_key_path="${HOME}/.ethereum/geth/nodekey"
+  _boot_node_address="127.0.0.1"
+  _boot_node_port="30303"
+  _data_chain_id="$( \
+    _chain_id_get)"
+  _boot_node_key_hex="$( \
+    bootnode \
+      -nodekey \
+      "${_node_key_path}" \
+      -writeaddress)"
+  _http_api_opts_setup
+  _geth_opts=(
+     --bootnodes="enode://${_boot_node_key_hex}@${_boot_node_address}:${_boot_node_port}"
+     --allow-insecure-unlock
+     --http
+     --http.addr="0.0.0.0"
+     --http.api="${_http_api_opts}"
+     --http.corsdomain="*"
+     --networkid="${_data_chain_id}"
+  )
   geth \
-    init \
-    "${_genesis}"
+    "${_geth_opts[@]}"
 }
 
 _conf_dir_auto_detect() {
   local \
     _conf_dir
-  _conf_dir="${HOME}/.config/data-blockchain/init"
+  _conf_dir="${HOME}/.config/data-blockchain/rpc"
   if [[ "${conf_dir}" == "" ]]; then
     mkdir \
       -p \
@@ -43,7 +102,6 @@ _conf_dir_auto_detect() {
     "dir" \
     "${_conf_dir}"
 }
-
 
 _set_overrides() {
   if [[ -v override_quiet ]]; then
@@ -68,6 +126,10 @@ _show_config() {
   _msg_info "               Start date:   ${start_date}"
   _msg_info "  Configuration directory:   ${conf_dir}"
 }
+
+_globals
+_global_variables
+_requirements
 
 while \
   getopts \
@@ -95,15 +157,10 @@ shift \
     OPTIND - 1 \
   ))
 
-_globals
-_global_variables
-_requirements
-
 _set_overrides
 _show_config
 app_opts=(
-  "${conf_dir}"
 )
 
-_init \
+_rpc_endpoint \
   "${app_opts[@]}"

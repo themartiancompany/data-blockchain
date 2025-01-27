@@ -12,6 +12,9 @@ source \
 
 _global_variables() {
   start_date=""
+  cache_dir=""
+  color=""
+  quiet=""
 }
 
 _requirements() {
@@ -41,21 +44,32 @@ _chain_id_get() {
     "${_chain_id}"
 }
 
-_boot_node() {
+_miner() {
   local \
+    _conf_dir="${1}" \
     _geth_opts=() \
-    _node_key_hex \
-    _node_key_path
-  _node_key_path="${HOME}/.ethereum/geth/nodekey"
+    _boot_node_address \
+    _boot_node_port \
+    _boot_node_key_hex \
+    _boot_node_key_path \
+    _data_chain_id \
+    _http_api_opts
+  _boot_node_key_path="${HOME}/.ethereum/geth/nodekey"
+  _boot_node_address="127.0.0.1"
+  _boot_node_port="30303"
   _data_chain_id="$( \
     _chain_id_get)"
+  _boot_node_key_hex="$( \
+    bootnode \
+      -nodekey \
+      "${_node_key_path}" \
+      -writeaddress)"
+  _http_api_opts_setup
   _geth_opts=(
-    # --nodekeyhex="${_node_key_hex}"
-    --nodiscover
-    --ipcdisable
-    --networkid="${_data_chain_id}"
-    # --netrestrict="172.16.254.0/28"
-
+     --bootnodes="enode://${_boot_node_key_hex}@${_boot_node_address}:${_boot_node_port}"
+     --mine
+     --miner.threads=1
+     --networkid="${_data_chain_id}"
   )
   geth \
     "${_geth_opts[@]}"
@@ -64,7 +78,7 @@ _boot_node() {
 _conf_dir_auto_detect() {
   local \
     _conf_dir
-  _conf_dir="${HOME}/.config/data-blockchain/bootnode"
+  _conf_dir="${HOME}/.config/data-blockchain/miner"
   if [[ "${conf_dir}" == "" ]]; then
     mkdir \
       -p \
@@ -98,11 +112,44 @@ _set_overrides() {
   _conf_dir_auto_detect
 }
 
+_show_config() {
+  _msg_info "${app_name} configuration"
+  _msg_info "               Start date:   ${start_date}"
+  _msg_info "  Configuration directory:   ${conf_dir}"
+}
+
 _globals
 _global_variables
 _requirements
-
+while \
+  getopts \
+    'C:cvh?' \
+    arg; do
+  case \
+    "${arg}" in
+    C) override_conf_dir="${OPTARG}" ;;
+    c) override_color="y" ;;
+    v) override_quiet="n" ;;
+    h|?) _set_overrides && \
+         _usage \
+           0 ;;
+    *)
+    _msg_error \
+      "Invalid argument '${arg}'" \
+      0
+    _usage \
+      1
+    ;;
+  esac
+done
+shift \
+  $(( \
+    OPTIND - 1 \
+  ))
+_set_overrides
+_show_config
 app_opts=(
+  "${conf_dir}"
 )
-_boot_node \
+_miner \
   "${app_opts[@]}"
