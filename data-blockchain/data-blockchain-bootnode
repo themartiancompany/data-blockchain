@@ -12,6 +12,9 @@ source \
 
 _global_variables() {
   start_date=""
+  conf_dir=""
+  color=""
+  quiet=""
 }
 
 _requirements() {
@@ -43,6 +46,7 @@ _chain_id_get() {
 
 _boot_node() {
   local \
+    _conf_dir="${1}" \
     _geth_opts=() \
     _node_key_hex \
     _node_key_path
@@ -51,14 +55,23 @@ _boot_node() {
     _chain_id_get)"
   _geth_opts=(
     # --nodekeyhex="${_node_key_hex}"
+    --datadir
+      "${_conf_dir}"
     --nodiscover
     --ipcdisable
     --networkid="${_data_chain_id}"
     # --netrestrict="172.16.254.0/28"
-
+    --authrpc.port
+      8554
+    --port
+       30305
+    --maxpeers
+      0
   )
   geth \
     "${_geth_opts[@]}"
+    # attach \
+    # "${HOME}/.config/data-blockchain/miner/geth.ipc"
 }
 
 _conf_dir_auto_detect() {
@@ -98,11 +111,20 @@ _set_overrides() {
   _conf_dir_auto_detect
 }
 
+_show_config() {
+  _msg_info "${app_name} configuration"
+  _msg_info "               Start date:   ${start_date}"
+  _msg_info "  Configuration directory:   ${conf_dir}"
+}
+
 _globals
 _global_variables
 _requirements
 
+_set_overrides
+_show_config
 app_opts=(
+  "${conf_dir}"
 )
 _boot_node \
   "${app_opts[@]}"

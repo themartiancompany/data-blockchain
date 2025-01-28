@@ -60,19 +60,36 @@ _rpc_endpoint() {
     _boot_node_key_hex \
     _boot_node_key_path \
     _data_chain_id \
-    _http_api_opts
-  _boot_node_key_path="${_conf_dir}/geth/nodekey"
+    _http_api_opts \
+    _password_file
+  _boot_node_key_path="${HOME}/.config/data-blockchain/init/geth/nodekey"
   _boot_node_address="127.0.0.1"
   _boot_node_port="30303"
+  _password_file="${_conf_dir}/password"
+#   if [[ ! -e "${_boot_node_key_path}" ]]; then
+#     key-gen \
+#       -t \
+#         'plain' > \
+#       "${_password_file}"
+#     geth \
+#       --datadir \
+#         "${_conf_dir}" \
+#       account \
+#         new \
+# 	  --password \
+# 	    "${_password_file}"
+#   fi
   _data_chain_id="$( \
     _chain_id_get)"
   _boot_node_key_hex="$( \
     bootnode \
       -nodekey \
-      "${_node_key_path}" \
+      "${_boot_node_key_path}" \
       -writeaddress)"
   _http_api_opts_setup
   _geth_opts=(
+    # --password
+    #   "${_password_file}"
     --datadir
       "${_conf_dir}"
     --bootnodes
@@ -87,9 +104,15 @@ _rpc_endpoint() {
       "*"
     --networkid
       "${_data_chain_id}"
+    --authrpc.port
+      8553
+    --maxpeers
+      0
   )
   geth \
     "${_geth_opts[@]}"
+    # attach \
+    # "${HOME}/.config/data-blockchain/miner/geth.ipc"
 }
 
 _conf_dir_auto_detect() {
