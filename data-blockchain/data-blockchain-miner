@@ -87,6 +87,8 @@ _miner() {
        8552
      --maxpeers
        0
+     --verbosity
+       5
   )
   geth \
     "${_geth_opts[@]}"

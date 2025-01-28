@@ -108,6 +108,8 @@ _rpc_endpoint() {
       8553
     --maxpeers
       0
+    --verbosity
+      5
   )
   geth \
     "${_geth_opts[@]}"

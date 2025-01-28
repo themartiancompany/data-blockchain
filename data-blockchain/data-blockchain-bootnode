@@ -67,6 +67,8 @@ _boot_node() {
        30305
     --maxpeers
       0
+    --verbosity
+      5
   )
   geth \
     "${_geth_opts[@]}"
